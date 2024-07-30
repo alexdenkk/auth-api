@@ -1,19 +1,19 @@
 package service
 
 import (
-	"alexdenkk/auth-api/internal/auth"
+	"alexdenkk/auth-api/internal/auth/repository"
 )
 
-// Service - структура слоя сервиса
+// Service - service layer struct
 type Service struct {
-	SignKey    []byte
-	Repository auth.Repository
+	JwtSignKey []byte
+	Repository *repository.Repository
 }
 
-// New - функция для создания экземпляра структуры Service
-func New(repo auth.Repository, key []byte) *Service {
+// New - function for creating Service instance
+func New(repo *repository.Repository, key []byte) *Service {
 	return &Service{
 		Repository: repo,
-		SignKey:    key,
+		JwtSignKey: key,
 	}
 }

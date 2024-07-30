@@ -6,10 +6,10 @@ import (
 
 // GenerateJWT - generate JWT token
 func GenerateJWT(claims Claims, key []byte) (string, error) {
-	// создание токена
+	// create token
 	t := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
-	// преобразовение токена в строку
+	// encode token to string
 	tokenString, err := t.SignedString(key)
 
 	if err != nil {
@@ -22,12 +22,12 @@ func GenerateJWT(claims Claims, key []byte) (string, error) {
 // ParseJWT - decode JWT token
 func ParseJWT(token string, key []byte) (*Claims, error) {
 
-	// парсинг токена
+	// parsing
 	t, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
 
-	// проверка на валидность
+	// validation
 	if claims, ok := t.Claims.(*Claims); ok && t.Valid {
 		return claims, nil
 	}

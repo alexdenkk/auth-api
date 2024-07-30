@@ -1,45 +1,52 @@
 package service
 
 import (
-	"context"
-
-	"alexdenkk/auth-api/internal/auth"
+	"alexdenkk/auth-api/internal/auth/entity"
 	"alexdenkk/auth-api/pkg/hash"
 	"alexdenkk/auth-api/pkg/token"
+	"context"
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Login - логин пользователя
-func (s *Service) Login(ctx context.Context, login, password string) (string, error) {
-	// получение пользователя по логину
-	user, err := s.Repository.GetUserByLogin(ctx, login)
+// Login - user login function
+func (s *Service) Login(
+	ctx context.Context, request entity.LoginRequest,
+) entity.LoginResponse {
 
-	if err != nil {
-		return "", auth.ErrUserNotFound
+	// getting user by login
+	response := s.Repository.GetUserByLogin(ctx, request)
+
+	if response.Err != nil {
+		response.Err = errors.New("user not found")
+		return response
 	}
 
-	// проверка пароля
-	if user.Password != hash.Hash(password) {
-		return "", auth.ErrIncorrectPassword
+	// checking password
+	if response.User.Password != hash.Hash(request.Password) {
+		response.Err = errors.New("incorrect password")
+		return response
 	}
 
-	// генерация токена
+	// generating token
 	claims := token.Claims{
-		ID:    user.ID,
-		Login: user.Login,
+		ID:    response.User.ID,
+		Login: response.User.Login,
 
 		RegisteredClaims: &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1000)),
 		},
 	}
 
-	tkn, err := token.GenerateJWT(claims, s.SignKey)
+	tkn, err := token.GenerateJWT(claims, s.JwtSignKey)
 
 	if err != nil {
-		return "", err
+		response.Err = err
+		return response
 	}
 
-	return tkn, nil
+	response.Token = tkn
+	return response
 }

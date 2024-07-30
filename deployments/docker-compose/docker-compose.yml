@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  auth-api:
+    container_name: auth-api
+    restart: always
+
+    build:
+      context: ../..
+      dockerfile: deployments/auth-api/Dockerfile
+    
+    command: ./api
+
+    environment:
+      - JWT=fuck
+      - HOST=:8000
+      - DB_USER=alexdenkk
+      - DB_PASSWORD=12345678
+      - DB_NAME=auth-db
+      - DB_HOST=db
+      - DB_PORT=5432
+
+    ports:
+      - 8000:8000
+
+    depends_on:
+      - db
+  
+  db:
+    container_name: db
+    image: postgres:13-alpine
+    restart: always
+
+    environment:
+      - POSTGRES_USER=alexdenkk
+      - POSTGRES_PASSWORD=12345678
+      - POSTGRES_DB=auth-db
+
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
